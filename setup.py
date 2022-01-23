@@ -15,16 +15,18 @@ with open(file_path) as requirements_txt:
     ]
 
 lib = "traiding.cache.mongodb"
+package_arr = [f"{lib}.{pkg}" for pkg in setuptools.find_packages(where="src")]
+package_arr.append(lib)
 
 setuptools.setup(
     name=lib,
-    version="1.0.2",
+    version="1.0.3",
     author="InsonusK",
     author_email="insonus.k@gmail.com",
     description="Framework for saving cache DataFrame to MongoDB",
     long_description=long_description,
     url="https://github.com/NNTrade/MongoDB-cache",
-    packages=[f"{lib}.{pkg}" for pkg in setuptools.find_packages(where="src")],
+    packages=package_arr,
     package_dir={lib:'src'},
     install_requires=install_requires,
     classifiers=[
