@@ -18,7 +18,7 @@ lib = "traiding.cache.mongodb"
 
 setuptools.setup(
     name=lib,
-    version="1.0.0",
+    version="1.0.1",
     author="InsonusK",
     author_email="insonus.k@gmail.com",
     description="Framework for saving cache DataFrame to MongoDB",
