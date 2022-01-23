@@ -1,3 +1,5 @@
+from sys import float_repr_style
+from src import DefaultConnectionConfig
 from src import mongo_df_client
 from pymongo import MongoClient
 import pandas as pd
@@ -7,22 +9,22 @@ import uuid
 class Mongo_DF_Client_TestCase(unittest.TestCase):
     collection_name = "Mongo_DF_Client_TestCase"
     def setUp(self):
-        mongo_df_client.HOST = "192.168.34.2"
-        mongo_df_client.PORT = 8001
-        mongo_df_client.USERNAME = "unittestbot"
-        mongo_df_client.PASSWORD = "unittestbot"
-        mongo_df_client.AUTHSOURCE = "nntrade"
-        mongo_df_client.DATABASE = "nntrade_unittest"
+        DefaultConnectionConfig.HOST = "192.168.34.2"
+        DefaultConnectionConfig.PORT = 8001
+        DefaultConnectionConfig.USERNAME = "unittestbot"
+        DefaultConnectionConfig.PASSWORD = "unittestbot"
+        DefaultConnectionConfig.AUTHSOURCE = "nntrade"
+        DefaultConnectionConfig.DATABASE = "nntrade_unittest"
     
     def tearDown(self):
         try:
             mng_client = MongoClient(
-                host=mongo_df_client.HOST,
-                port=mongo_df_client.PORT,
-                username=mongo_df_client.USERNAME,
-                password=mongo_df_client.PASSWORD,
-                authSource=mongo_df_client.AUTHSOURCE)
-            mng_db = mng_client[mongo_df_client.DATABASE]
+                host=DefaultConnectionConfig.HOST,
+                port=DefaultConnectionConfig.PORT,
+                username=DefaultConnectionConfig.USERNAME,
+                password=DefaultConnectionConfig.PASSWORD,
+                authSource=DefaultConnectionConfig.AUTHSOURCE)
+            mng_db = mng_client[DefaultConnectionConfig.DATABASE]
             mng_collection = mng_db[self.collection_name]
             mng_collection.drop()
         finally:
