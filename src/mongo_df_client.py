@@ -27,13 +27,30 @@ def _query_to_query_str(query:Dict[str,str])->Dict[str,str]:
         _query_config[f"config.{conf}"] = query[conf]
     return _query_config
 
-def save(collection_name: str,config: Dict[str, str], df: pd.DataFrame,connection_config:ConnectionConfig = DefaultConnectionConfig)->ObjectId:
+def replace(collection_name: str,config: Dict[str, str], payload: pd.DataFrame,id:Union[str,ObjectId]="",connection_config:ConnectionConfig = DefaultConnectionConfig)->ObjectId:
     try:
         mng_client, mng_collection = _create_connection(collection_name,connection_config)
         data = {
             "config": config,
-            "payload": df.to_dict()
+            "payload": payload.to_dict()
         }
+        if isinstance(id, str) and id != "":
+           id = ObjectId(id)
+            
+        mng_collection.replace_one({"_id":id}, data)
+    finally:
+        mng_client.close()
+    return id
+
+def save(collection_name: str,config: Dict[str, str], payload: pd.DataFrame,connection_config:ConnectionConfig = DefaultConnectionConfig)->ObjectId:
+    try:
+        mng_client, mng_collection = _create_connection(collection_name,connection_config)
+        data = {
+            "config": config
+        }
+        if isinstance(payload, pd.DataFrame):
+            data["payload"] = payload.to_dict()
+            
         _id = mng_collection.insert_one(data)
     finally:
         mng_client.close()
@@ -52,7 +69,11 @@ def load(collection_name: str,query:Dict[str,str]={}, id:Union[str,ObjectId]="",
             _query["_id"] = id
             
         for doc in mng_collection.find(_query):
-            _ret.append((doc["config"], pd.DataFrame.from_dict(doc["payload"])))
+            if "payload" in doc:
+                df = pd.DataFrame.from_dict(doc["payload"])
+            else:
+                df = pd.NA
+            _ret.append((doc["config"], df))
     finally:
         mng_client.close()
     return _ret
