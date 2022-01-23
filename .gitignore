@@ -31,4 +31,4 @@ _ReSharper*/
 #Nuget packages folder
 packages/
 
-/__pycache__/
+*/__pycache__/*

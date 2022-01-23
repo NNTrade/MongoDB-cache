@@ -3,15 +3,9 @@ import pandas as pd
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from bson.objectid import ObjectId
+from . import HOST,PORT,USERNAME,PASSWORD,AUTHSOURCE,DATABASE
 
-HOST = "192.168.0.1"
-PORT = 8080
-USERNAME = "root"
-PASSWORD = "root"
-AUTHSOURCE = "nntrade"
-DATABASE = "nntrade"
-
-def _create_connection(collection_name: str) -> Tuple[MongoClient,Collection]:
+def create_connection(collection_name: str) -> Tuple[MongoClient,Collection]:
     mng_client = MongoClient(
             host=HOST,
             port=PORT,
@@ -22,7 +16,7 @@ def _create_connection(collection_name: str) -> Tuple[MongoClient,Collection]:
     mng_collection = mng_db[collection_name]
     return mng_client, mng_collection
 
-def _query_to_query_str(query:Dict[str,str])->Dict[str,str]:
+def query_to_query_str(query:Dict[str,str])->Dict[str,str]:
     _query_config = {}
     for conf in query:
         _query_config[f"config.{conf}"] = query[conf]
@@ -30,7 +24,7 @@ def _query_to_query_str(query:Dict[str,str])->Dict[str,str]:
 
 def save(collection_name: str,config: Dict[str, str], df: pd.DataFrame)->ObjectId:
     try:
-        mng_client, mng_collection = _create_connection(collection_name)
+        mng_client, mng_collection = create_connection(collection_name)
         data = {
             "config": config,
             "payload": df.to_dict()
@@ -43,8 +37,8 @@ def save(collection_name: str,config: Dict[str, str], df: pd.DataFrame)->ObjectI
 def load(collection_name: str,query:Dict[str,str]={}, id:Union[str,ObjectId]="")->List[Tuple[Dict[str,str], pd.DataFrame]]:
     _ret = []
     try:
-        mng_client, mng_collection = _create_connection(collection_name)
-        _query = _query_to_query_str(query)
+        mng_client, mng_collection = create_connection(collection_name)
+        _query = query_to_query_str(query)
         
         if isinstance(id, str) and id != "":
            id = ObjectId(id)
