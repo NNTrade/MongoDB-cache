@@ -1,4 +1,5 @@
 from typing import Dict, List, Tuple, Union
+from xmlrpc.client import Boolean
 import pandas as pd
 from pymongo import MongoClient
 from pymongo.collection import Collection
@@ -51,3 +52,9 @@ def load(collection_name: str,query:Dict[str,str]={}, id:Union[str,ObjectId]="")
     finally:
         mng_client.close()
     return _ret
+
+def check_df_convert(df:pd.DataFrame)->bool:
+    data = df.to_dict()
+    returned_df = pd.DataFrame.from_dict(data)
+    return df.equals(returned_df)
+    
