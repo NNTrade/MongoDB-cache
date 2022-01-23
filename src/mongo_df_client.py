@@ -1,3 +1,5 @@
+from asyncio.log import logger
+import logging
 from typing import Dict, List, Tuple, Union
 from xmlrpc.client import Boolean
 import pandas as pd
@@ -7,6 +9,8 @@ from bson.objectid import ObjectId
 from . import DefaultConnectionConfig,ConnectionConfig
 
 def _create_connection(collection_name: str,conn:ConnectionConfig = DefaultConnectionConfig) -> Tuple[MongoClient,Collection]:
+    logger = logging.getLogger("Create connection")
+    logger.info(f"Open connection to host: {conn.HOST} DB: {conn.DATABASE} collection: {collection_name}")
     mng_client = MongoClient(
             host=conn.HOST,
             port=conn.PORT,
