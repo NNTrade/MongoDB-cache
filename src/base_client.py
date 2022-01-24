@@ -24,5 +24,5 @@ class BaseClient:
         return check_df_convert(df)
     def replace(self, id:ObjectId,config: Dict[str, str], df: pd.DataFrame)->ObjectId:
         self._logger.info("replace df from mongo collection") 
-        return replace(id,self._collection_name,config,df,self.connection_config)
+        return replace(self._collection_name,config,df,id,self.connection_config)
     
