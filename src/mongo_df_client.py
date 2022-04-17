@@ -56,7 +56,7 @@ def replace(collection_name: str, config: Dict[str, str], payload: pd.DataFrame,
     return id
 
 
-def save(collection_name: str, config: Dict[str, str], payload: pd.DataFrame, connection_config: ConnectionConfig = DefaultConnectionConfig, on_duplicate_config: save_logic = save_logic.ReplaceDuplicateConfig) -> ObjectId:
+def save(collection_name: str, config: Dict[str, str], payload: pd.DataFrame, connection_config: ConnectionConfig = DefaultConnectionConfig, on_duplicate_config: save_logic = save_logic.ErrorOnDuplicateConfig) -> ObjectId:
     try:
         mng_client, mng_collection = _create_connection(
             collection_name, connection_config)
@@ -72,7 +72,7 @@ def save(collection_name: str, config: Dict[str, str], payload: pd.DataFrame, co
         ids = search_id(collection_name, config)
         if len(ids) > 0:
             if on_duplicate_config == save_logic.ErrorOnDuplicateConfig:
-                raise Exception("Exist record with config")
+                raise Exception("Exist record with same config")
             elif on_duplicate_config == save_logic.ReplaceDuplicateConfig:
                 mng_collection.delete_many(_query_to_query_str(config))
         _id = mng_collection.insert_one(data)

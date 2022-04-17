@@ -15,7 +15,7 @@ class BaseClient:
         self._logger.info("Lock id for data")
         return search_id(self._collection_name, config, self.connection_config)
 
-    def save(self, config: Dict[str, str], df: pd.DataFrame, on_duplicate_config: save_logic = save_logic.ReplaceDuplicateConfig) -> ObjectId:
+    def save(self, config: Dict[str, str], df: pd.DataFrame, on_duplicate_config: save_logic = save_logic.ErrorOnDuplicateConfig) -> ObjectId:
         self._logger.info("save df to mongo collection")
         return save(self._collection_name, config, df, self.connection_config, on_duplicate_config)
         
