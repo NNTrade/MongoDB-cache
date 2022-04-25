@@ -20,7 +20,7 @@ package_arr.append(lib)
 
 setuptools.setup(
     name=lib,
-    version="4.0.0",
+    version="4.0.1",
     author="InsonusK",
     author_email="insonus.k@gmail.com",
     description="Framework for saving cache DataFrame to MongoDB",

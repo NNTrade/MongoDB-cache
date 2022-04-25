@@ -20,9 +20,9 @@ class BaseClient:
         self._logger.info("save DataFrame to mongo collection")
         return save_df(self._collection_name, config, df, self.connection_config, on_duplicate_config)
 
-    def save_sr(self, config: Dict[str, str], df: pd.Series, on_duplicate_config: save_logic = save_logic.ErrorOnDuplicateConfig) -> ObjectId:
+    def save_sr(self, config: Dict[str, str], sr: pd.Series, on_duplicate_config: save_logic = save_logic.ErrorOnDuplicateConfig) -> ObjectId:
         self._logger.info("save Series to mongo collection")
-        return save_sr(self._collection_name, config, df, self.connection_config, on_duplicate_config)
+        return save_sr(self._collection_name, config, sr, self.connection_config, on_duplicate_config)
 
     def load_df(self, query: Dict[str, str] = {}, id: Union[str, ObjectId] = "") -> List[Tuple[Dict[str, str], pd.DataFrame]]:
         self._logger.info("load DataFrame from mongo collection")
