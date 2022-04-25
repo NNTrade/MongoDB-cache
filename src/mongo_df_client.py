@@ -56,15 +56,14 @@ def replace(collection_name: str, config: Dict[str, str], payload: pd.DataFrame,
     return id
 
 
-def save(collection_name: str, config: Dict[str, str], payload: pd.DataFrame, connection_config: ConnectionConfig = DefaultConnectionConfig, on_duplicate_config: save_logic = save_logic.ErrorOnDuplicateConfig) -> ObjectId:
+def __save_payload(collection_name: str, config: Dict[str, str], payload: str, connection_config: ConnectionConfig = DefaultConnectionConfig, on_duplicate_config: save_logic = save_logic.ErrorOnDuplicateConfig) -> ObjectId:
     try:
         mng_client, mng_collection = _create_connection(
             collection_name, connection_config)
         data = {
             "config": config
         }
-        if isinstance(payload, pd.DataFrame):
-            data["payload"] = payload.to_dict()
+        data["payload"] = payload
 
         data["timestamp"] = datetime.now(
             timezone.utc).strftime("%Y-%m-%d, %H:%M:%S, %Z")
@@ -81,7 +80,23 @@ def save(collection_name: str, config: Dict[str, str], payload: pd.DataFrame, co
     return _id.inserted_id
 
 
-def _search_id(mng_collection: Collection,query: Dict[str, str])->List[ObjectId]:
+def save_df(collection_name: str, config: Dict[str, str], payload: pd.DataFrame, connection_config: ConnectionConfig = DefaultConnectionConfig, on_duplicate_config: save_logic = save_logic.ErrorOnDuplicateConfig) -> ObjectId:
+    if isinstance(payload, pd.DataFrame):
+        payload = payload.to_dict()
+    else:
+        raise Exception("Payload should be DataFrame")
+    return __save_payload(collection_name, config, payload, connection_config, on_duplicate_config)
+
+
+def save_sr(collection_name: str, config: Dict[str, str], payload: pd.Series, connection_config: ConnectionConfig = DefaultConnectionConfig, on_duplicate_config: save_logic = save_logic.ErrorOnDuplicateConfig) -> ObjectId:
+    if isinstance(payload, pd.Series):
+        payload = payload.to_dict()
+    else:
+        raise Exception("Payload should be Series")
+    return __save_payload(collection_name, config, payload, connection_config, on_duplicate_config)
+
+
+def _search_id(mng_collection: Collection, query: Dict[str, str]) -> List[ObjectId]:
     _ret = []
     _query = _query_to_query_str(query)
 
@@ -89,6 +104,7 @@ def _search_id(mng_collection: Collection,query: Dict[str, str])->List[ObjectId]
         if "_id" in doc:
             _ret.append(ObjectId(doc["_id"]))
     return _ret
+
 
 def search_id(collection_name: str, query: Dict[str, str], connection_config: ConnectionConfig = DefaultConnectionConfig) -> List[ObjectId]:
     try:
@@ -99,7 +115,7 @@ def search_id(collection_name: str, query: Dict[str, str], connection_config: Co
         mng_client.close()
 
 
-def delete_dy_config(collection_name: str, query: Dict[str, str], connection_config: ConnectionConfig = DefaultConnectionConfig)->int:
+def delete_dy_config(collection_name: str, query: Dict[str, str], connection_config: ConnectionConfig = DefaultConnectionConfig) -> int:
     """
     delete records by query
     return delete count
@@ -114,7 +130,7 @@ def delete_dy_config(collection_name: str, query: Dict[str, str], connection_con
         mng_client.close()
 
 
-def load(collection_name: str, query: Dict[str, str] = {}, id: Union[str, ObjectId] = "", connection_config: ConnectionConfig = DefaultConnectionConfig) -> List[Tuple[Dict[str, str], pd.DataFrame]]:
+def __load_payload(collection_name: str, query: Dict[str, str] = {}, id: Union[str, ObjectId] = "", connection_config: ConnectionConfig = DefaultConnectionConfig) -> List[Tuple[Dict[str, str], str]]:
     _ret = []
     try:
         mng_client, mng_collection = _create_connection(
@@ -128,17 +144,34 @@ def load(collection_name: str, query: Dict[str, str] = {}, id: Union[str, Object
             _query["_id"] = id
 
         for doc in mng_collection.find(_query):
-            if "payload" in doc:
-                df = pd.DataFrame.from_dict(doc["payload"])
-            else:
-                df = pd.NA
-            _ret.append((doc["config"], df))
+            _ret.append((doc["config"], doc["payload"]))
     finally:
         mng_client.close()
     return _ret
 
 
+def load_df(collection_name: str, query: Dict[str, str] = {}, id: Union[str, ObjectId] = "", connection_config: ConnectionConfig = DefaultConnectionConfig) -> List[Tuple[Dict[str, str], pd.DataFrame]]:
+    _tmp_ret: List[Tuple[Dict[str, str], str]] = __load_payload(
+        collection_name, query, id, connection_config)
+    _ret: List[Tuple[Dict[str, str], pd.DataFrame]] = [
+        (dict, pd.DataFrame.from_dict(payload))for (dict, payload) in _tmp_ret]
+    return _ret
+
+
+def load_sr(collection_name: str, query: Dict[str, str] = {}, id: Union[str, ObjectId] = "", connection_config: ConnectionConfig = DefaultConnectionConfig) -> List[Tuple[Dict[str, str], pd.Series]]:
+    _tmp_ret: List[Tuple[Dict[str, str], str]] = __load_payload(
+        collection_name, query, id, connection_config)
+    _ret: List[Tuple[Dict[str, str], pd.DataFrame]] = [
+        (dict, pd.Series(payload))for (dict, payload) in _tmp_ret]
+    return _ret
+
 def check_df_convert(df: pd.DataFrame) -> bool:
     data = df.to_dict()
     returned_df = pd.DataFrame.from_dict(data)
     return df.equals(returned_df)
+
+
+def check_sr_convert(sr: pd.Series) -> bool:
+    data = sr.to_dict()
+    returned_sr = pd.Series(data)
+    return sr.equals(returned_sr)

@@ -49,14 +49,17 @@ class BaseClientTestCase(unittest.TestCase):
 
     def test_save_with_same_config_and_add(self):
         client = BaseClient(self.collection_name)
-        client.save(
-            {"p1": "v1"}, pd.NA)
+        old_df = pd.DataFrame(
+            {"A": [1, 2, 3], "B": [4, 5, 6]}, index=[10, 11, 12])
+        old_df.index = old_df.index.map(lambda el: str(el))
+        client.save_df(
+            {"p1": "v1"}, old_df)
 
         df = pd.DataFrame({"A": [0, 1, 2, 3], "B": [1, 2, 3, 4]}, index=[datetime(
             2022, 1, 1), datetime(2022, 1, 2), datetime(2022, 1, 3), datetime(2022, 1, 4)])
         df.index = df.index.map(lambda idx: str(idx))
 
-        expectId = client.save(
+        expectId = client.save_df(
             {"p1": "v1"}, df, on_duplicate_config=save_logic.AddDuplicateConfig)
 
         assertId = client.get_id({"p1": "v1"})
@@ -65,14 +68,17 @@ class BaseClientTestCase(unittest.TestCase):
 
     def test_save_with_same_config_and_replace(self):
         client = BaseClient(self.collection_name)
-        client.save(
-            {"p1": "v1"}, pd.NA)
+        old_df = pd.DataFrame(
+            {"A": [1, 2, 3], "B": [4, 5, 6]}, index=[10, 11, 12])
+        old_df.index = old_df.index.map(lambda el: str(el))
+        client.save_df(
+            {"p1": "v1"}, old_df)
 
         df = pd.DataFrame({"A": [0, 1, 2, 3], "B": [1, 2, 3, 4]}, index=[datetime(
             2022, 1, 1), datetime(2022, 1, 2), datetime(2022, 1, 3), datetime(2022, 1, 4)])
         df.index = df.index.map(lambda idx: str(idx))
 
-        expectId = client.save(
+        expectId = client.save_df(
             {"p1": "v1"}, df, on_duplicate_config=save_logic.ReplaceDuplicateConfig)
 
         assertId = client.get_id({"p1": "v1"})
@@ -86,7 +92,7 @@ class BaseClientTestCase(unittest.TestCase):
             2022, 1, 1), datetime(2022, 1, 2), datetime(2022, 1, 3), datetime(2022, 1, 4)])
         df.index = df.index.map(lambda idx: str(idx))
 
-        expectId = client.save(
+        expectId = client.save_df(
             {"p1": "v1"}, df)
 
         assertId = client.get_id({"p1": "v1"})
@@ -104,9 +110,26 @@ class BaseClientTestCase(unittest.TestCase):
 
         self.assertTrue(client.check_df_convert(expectedDf))
 
-        objId = client.save({"p1": "v1"}, expectedDf)
+        objId = client.save_df({"p1": "v1"}, expectedDf)
 
-        assertedDf = client.load(id=objId)[0][1]
+        assertedDf = client.load_df(id=objId)[0][1]
+
+        self.logger.info(expectedDf)
+        self.logger.info(assertedDf)
+        self.assertTrue(expectedDf.equals(assertedDf))
+
+    def test_return_equal_sr(self):
+
+        client = BaseClient(self.collection_name)
+
+        expectedDf = pd.Series({"A": 1, "B": 3})
+        expectedDf.index = expectedDf.index.map(lambda idx: str(idx))
+
+        self.assertTrue(client.check_sr_convert(expectedDf))
+
+        objId = client.save_sr({"p1": "v1"}, expectedDf)
+
+        assertedDf = client.load_sr(id=objId)[0][1]
 
         self.logger.info(expectedDf)
         self.logger.info(assertedDf)
