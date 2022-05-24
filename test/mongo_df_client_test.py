@@ -6,12 +6,14 @@ import pandas as pd
 import unittest
 import uuid
 
+from src.multi_index_flatting import flating
+
 
 class MongoDfClientTestCase(unittest.TestCase):
     collection_name = "Mongo_DF_Client_TestCase"
 
     def setUp(self):
-        DefaultConnectionConfig.HOST = "192.168.34.2"
+        DefaultConnectionConfig.HOST = "192.168.34.112"
         DefaultConnectionConfig.PORT = 9012
         DefaultConnectionConfig.USERNAME = "unittestbot"
         DefaultConnectionConfig.PASSWORD = "unittestbot"
@@ -35,8 +37,9 @@ class MongoDfClientTestCase(unittest.TestCase):
     def test_save_load_df(self):
         id = str(uuid.uuid4())
         expected_df = pd.DataFrame(
-            {"A": [1, 2, 3], "B": [4, 5, 6]}, index=[10, 11, 12])
-        expected_df.index = expected_df.index.map(lambda el: str(el))
+            {"A": [1, 2, 3], "B": [4, 5, 6]}, index=["10", "11", "12"])
+        print("expected_df")
+        print(expected_df)
         expected_config = {"f1": id, "f2": "test3"}
         mongo_df_client.save_df(self.collection_name,
                                 expected_config, expected_df)
@@ -48,6 +51,38 @@ class MongoDfClientTestCase(unittest.TestCase):
 
         asserted_config = asserted_list[0][0]
         asserted_df = asserted_list[0][1]
+        print("asserted_df")
+        print(asserted_df)
+
+        self.assertEqual(expected_config, asserted_config)
+        self.assertTrue(expected_df.equals(asserted_df))
+
+    def test_save_load_multiindex_df(self):
+        id = str(uuid.uuid4())
+        expected_df = pd.DataFrame(
+            {("A", "1"): [1, 2, 3], ("A", "2"): [4, 5, 6], ("B", "2"): [7, 8, 0]}, index=[("A", "10"), ("A", "11"), ("B", "12")])
+        print("expected_df")
+        print(expected_df)
+
+        expected_df.index = flating(expected_df.index)
+        expected_df.columns = flating(expected_df.columns)
+
+        print("expected_df after flating")
+        print(expected_df)
+
+        expected_config = {"f1": id, "f2": "test3"}
+        mongo_df_client.save_df(self.collection_name,
+                                expected_config, expected_df)
+
+        asserted_list = mongo_df_client.load_df(
+            self.collection_name, {"f1": id})
+
+        self.assertEqual(1, len(asserted_list))
+
+        asserted_config = asserted_list[0][0]
+        asserted_df = asserted_list[0][1]
+        print("asserted_df")
+        print(asserted_df)
         self.assertEqual(expected_config, asserted_config)
         self.assertTrue(expected_df.equals(asserted_df))
 
@@ -57,8 +92,10 @@ class MongoDfClientTestCase(unittest.TestCase):
             {"A": 1, "B": 4})
         expected_df.index = expected_df.index.map(lambda el: str(el))
         expected_config = {"f1": id, "f2": "test4"}
+        print("expected_df")
+        print(expected_df)
         mongo_df_client.save_sr(self.collection_name,
-                             expected_config, expected_df)
+                                expected_config, expected_df)
 
         asserted_list = mongo_df_client.load_sr(
             self.collection_name, {"f1": id})
@@ -67,6 +104,8 @@ class MongoDfClientTestCase(unittest.TestCase):
 
         asserted_config = asserted_list[0][0]
         asserted_df = asserted_list[0][1]
+        print("asserted_df")
+        print(asserted_df)
         self.assertEqual(expected_config, asserted_config)
         self.assertTrue(expected_df.equals(asserted_df))
 
@@ -82,9 +121,9 @@ class MongoDfClientTestCase(unittest.TestCase):
         expected_config1 = {"f1": id, "f2": "test3"}
         expected_config2 = {"f1": id, "f2": "test4"}
         mongo_df_client.save_df(self.collection_name,
-                             expected_config1, expected_df1)
+                                expected_config1, expected_df1)
         mongo_df_client.save_df(self.collection_name,
-                             expected_config2, expected_df2)
+                                expected_config2, expected_df2)
 
         asserted_list = mongo_df_client.load_df(
             self.collection_name, {"f1": id})
@@ -125,9 +164,9 @@ class MongoDfClientTestCase(unittest.TestCase):
         expected_config1 = {"f1": id, "f2": "test3"}
         expected_config2 = {"f1": id, "f2": "test4"}
         mongo_df_client.save_sr(self.collection_name,
-                             expected_config1, expected_df1)
+                                expected_config1, expected_df1)
         mongo_df_client.save_sr(self.collection_name,
-                             expected_config2, expected_df2)
+                                expected_config2, expected_df2)
 
         asserted_list = mongo_df_client.load_sr(
             self.collection_name, {"f1": id})

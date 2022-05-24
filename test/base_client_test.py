@@ -7,6 +7,8 @@ from src.base_client import BaseClient
 from src.mongo_df_client import DefaultConnectionConfig, save_logic
 import pandas as pd
 
+from test.df_assert_equals import compare_df
+
 
 class BaseClientTestCase(unittest.TestCase):
     collection_name = "BaseClientTestCase"
@@ -15,7 +17,7 @@ class BaseClientTestCase(unittest.TestCase):
                         datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
     def setUp(self):
-        DefaultConnectionConfig.HOST = "192.168.34.2"
+        DefaultConnectionConfig.HOST = "192.168.34.112"
         DefaultConnectionConfig.PORT = 9012
         DefaultConnectionConfig.USERNAME = "unittestbot"
         DefaultConnectionConfig.PASSWORD = "unittestbot"
@@ -116,7 +118,7 @@ class BaseClientTestCase(unittest.TestCase):
 
         self.logger.info(expectedDf)
         self.logger.info(assertedDf)
-        self.assertTrue(expectedDf.equals(assertedDf))
+        compare_df(self, expectedDf, assertedDf)
 
     def test_return_equal_sr(self):
 
