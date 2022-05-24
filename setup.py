@@ -14,7 +14,7 @@ with open(file_path) as requirements_txt:
         in pkg_resources.parse_requirements(requirements_txt)
     ]
 
-lib = "traiding.cache.mongodb"
+lib = "NNTrade.cache.mongodb"
 package_arr = [f"{lib}.{pkg}" for pkg in setuptools.find_packages(where="src")]
 package_arr.append(lib)
 
