@@ -4,7 +4,8 @@ import unittest
 
 from pymongo import MongoClient
 from src.cache_client import CacheClient
-from src.cache_client_func import DEFAULT_CACHE_CONNECTION_CFG, save_logic
+from src.cache_client_func import DEFAULT_CACHE_CONNECTION_CFG
+from src.save_logic import SaveLogic
 import pandas as pd
 
 from test.df_assert_equals import compare_df
@@ -62,7 +63,7 @@ class BaseClientTestCase(unittest.TestCase):
         df.index = df.index.map(lambda idx: str(idx))
 
         expectId = client.save_df(
-            {"p1": "v1"}, df, on_duplicate_config=save_logic.AddDuplicateConfig)
+            {"p1": "v1"}, df, on_duplicate_config=SaveLogic.AddDuplicateConfig)
 
         assertId = client.get_id({"p1": "v1"})
         self.assertEqual(2, len(assertId))
@@ -81,7 +82,7 @@ class BaseClientTestCase(unittest.TestCase):
         df.index = df.index.map(lambda idx: str(idx))
 
         expectId = client.save_df(
-            {"p1": "v1"}, df, on_duplicate_config=save_logic.ReplaceDuplicateConfig)
+            {"p1": "v1"}, df, on_duplicate_config=SaveLogic.ReplaceDuplicateConfig)
 
         assertId = client.get_id({"p1": "v1"})
         self.assertEqual(1, len(assertId))

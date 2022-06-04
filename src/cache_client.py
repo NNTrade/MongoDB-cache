@@ -1,8 +1,9 @@
 from typing import Dict, Union, List, Tuple
 import pandas as pd
 from bson.objectid import ObjectId
-from .cache_client_func import check_df_convert, replace, save_df, save_logic, search_id, load_df, load_sr, check_sr_convert, save_sr
+from .cache_client_func import check_df_convert, replace, save_df, search_id, load_df, load_sr, check_sr_convert, save_sr
 from .constants import ConnectionConfig, DEFAULT_CACHE_CONNECTION_CFG
+from .save_logic import SaveLogic
 import logging
 
 
@@ -16,11 +17,11 @@ class CacheClient:
         self._logger.info("Lock id for data")
         return search_id(self._collection_name, config, self.connection_config)
 
-    def save_df(self, config: Dict[str, str], df: pd.DataFrame, on_duplicate_config: save_logic = save_logic.ErrorOnDuplicateConfig) -> ObjectId:
+    def save_df(self, config: Dict[str, str], df: pd.DataFrame, on_duplicate_config: SaveLogic = SaveLogic.ErrorOnDuplicateConfig) -> ObjectId:
         self._logger.info("save DataFrame to mongo collection")
         return save_df(self._collection_name, config, df, self.connection_config, on_duplicate_config)
 
-    def save_sr(self, config: Dict[str, str], sr: pd.Series, on_duplicate_config: save_logic = save_logic.ErrorOnDuplicateConfig) -> ObjectId:
+    def save_sr(self, config: Dict[str, str], sr: pd.Series, on_duplicate_config: SaveLogic = SaveLogic.ErrorOnDuplicateConfig) -> ObjectId:
         self._logger.info("save Series to mongo collection")
         return save_sr(self._collection_name, config, sr, self.connection_config, on_duplicate_config)
 

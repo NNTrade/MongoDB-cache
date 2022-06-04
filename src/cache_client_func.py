@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from enum import Enum
+
 import logging
 from typing import Dict, List, Tuple, Union
 import pandas as pd
@@ -7,12 +7,7 @@ from pymongo import MongoClient
 from pymongo.collection import Collection
 from bson.objectid import ObjectId
 from .constants import DEFAULT_CACHE_CONNECTION_CFG, ConnectionConfig
-
-
-class save_logic(Enum):
-    ErrorOnDuplicateConfig = 1,
-    ReplaceDuplicateConfig = 2,
-    AddDuplicateConfig = 3
+from .save_logic import SaveLogic
 
 
 def create_connection(collection_name: str, conn: ConnectionConfig = DEFAULT_CACHE_CONNECTION_CFG) -> Tuple[MongoClient, Collection]:
@@ -53,7 +48,7 @@ def replace(collection_name: str, config: Dict[str, str], payload: pd.DataFrame,
     return id
 
 
-def __save_payload(collection_name: str, config: Dict[str, str], payload: str, connection_config: ConnectionConfig = DEFAULT_CACHE_CONNECTION_CFG, on_duplicate_config: save_logic = save_logic.ErrorOnDuplicateConfig) -> ObjectId:
+def __save_payload(collection_name: str, config: Dict[str, str], payload: str, connection_config: ConnectionConfig = DEFAULT_CACHE_CONNECTION_CFG, on_duplicate_config: SaveLogic = SaveLogic.ErrorOnDuplicateConfig) -> ObjectId:
     try:
         mng_client, mng_collection = create_connection(
             collection_name, connection_config)
@@ -61,9 +56,9 @@ def __save_payload(collection_name: str, config: Dict[str, str], payload: str, c
 
         ids = search_id(collection_name, config)
         if len(ids) > 0:
-            if on_duplicate_config == save_logic.ErrorOnDuplicateConfig:
+            if on_duplicate_config == SaveLogic.ErrorOnDuplicateConfig:
                 raise Exception("Exist record with same config")
-            elif on_duplicate_config == save_logic.ReplaceDuplicateConfig:
+            elif on_duplicate_config == SaveLogic.ReplaceDuplicateConfig:
                 mng_collection.delete_many(config)
         _id = mng_collection.insert_one(data)
     finally:
@@ -71,7 +66,7 @@ def __save_payload(collection_name: str, config: Dict[str, str], payload: str, c
     return _id.inserted_id
 
 
-def save_df(collection_name: str, config: Dict[str, str], payload: pd.DataFrame, connection_config: ConnectionConfig = DEFAULT_CACHE_CONNECTION_CFG, on_duplicate_config: save_logic = save_logic.ErrorOnDuplicateConfig, tuple_split: str = "|") -> ObjectId:
+def save_df(collection_name: str, config: Dict[str, str], payload: pd.DataFrame, connection_config: ConnectionConfig = DEFAULT_CACHE_CONNECTION_CFG, on_duplicate_config: SaveLogic = SaveLogic.ErrorOnDuplicateConfig, tuple_split: str = "|") -> ObjectId:
     if isinstance(payload, pd.DataFrame):
         payload_data = payload.to_dict()
     else:
@@ -79,7 +74,7 @@ def save_df(collection_name: str, config: Dict[str, str], payload: pd.DataFrame,
     return __save_payload(collection_name, config, payload_data, connection_config, on_duplicate_config)
 
 
-def save_sr(collection_name: str, config: Dict[str, str], payload: pd.Series, connection_config: ConnectionConfig = DEFAULT_CACHE_CONNECTION_CFG, on_duplicate_config: save_logic = save_logic.ErrorOnDuplicateConfig, tuple_split="|") -> ObjectId:
+def save_sr(collection_name: str, config: Dict[str, str], payload: pd.Series, connection_config: ConnectionConfig = DEFAULT_CACHE_CONNECTION_CFG, on_duplicate_config: SaveLogic = SaveLogic.ErrorOnDuplicateConfig, tuple_split="|") -> ObjectId:
     if isinstance(payload, pd.Series):
         payload_data = payload.to_dict()
     else:
