@@ -1,15 +1,12 @@
-from ast import arg
-from asyncio.log import logger
 from datetime import datetime, timezone
 from enum import Enum
 import logging
 from typing import Dict, List, Tuple, Union
-from xmlrpc.client import Boolean
 import pandas as pd
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from bson.objectid import ObjectId
-from . import DefaultConnectionConfig, ConnectionConfig
+from .constants import DEFAULT_CACHE_CONNECTION_CFG, ConnectionConfig
 
 
 class save_logic(Enum):
@@ -18,7 +15,7 @@ class save_logic(Enum):
     AddDuplicateConfig = 3
 
 
-def create_connection(collection_name: str, conn: ConnectionConfig = DefaultConnectionConfig) -> Tuple[MongoClient, Collection]:
+def create_connection(collection_name: str, conn: ConnectionConfig = DEFAULT_CACHE_CONNECTION_CFG) -> Tuple[MongoClient, Collection]:
     logger = logging.getLogger("Create connection")
     logger.info(
         f"Open connection to host: {conn.HOST} DB: {conn.DATABASE} collection: {collection_name}")
@@ -33,14 +30,15 @@ def create_connection(collection_name: str, conn: ConnectionConfig = DefaultConn
     return mng_client, mng_collection
 
 
-def __build_payload(config: Dict[str,str], payload:str)->Dict[str, str]:
+def __build_payload(config: Dict[str, str], payload: str) -> Dict[str, str]:
     data = config.copy()
     data["__payload"] = payload
     data["__timestamp"] = datetime.now(
         timezone.utc).strftime("%Y-%m-%d, %H:%M:%S, %Z")
     return data
 
-def replace(collection_name: str, config: Dict[str, str], payload: pd.DataFrame, id: Union[str, ObjectId] = "", connection_config: ConnectionConfig = DefaultConnectionConfig) -> ObjectId:
+
+def replace(collection_name: str, config: Dict[str, str], payload: pd.DataFrame, id: Union[str, ObjectId] = "", connection_config: ConnectionConfig = DEFAULT_CACHE_CONNECTION_CFG) -> ObjectId:
     try:
         mng_client, mng_collection = create_connection(
             collection_name, connection_config)
@@ -55,7 +53,7 @@ def replace(collection_name: str, config: Dict[str, str], payload: pd.DataFrame,
     return id
 
 
-def __save_payload(collection_name: str, config: Dict[str, str], payload: str, connection_config: ConnectionConfig = DefaultConnectionConfig, on_duplicate_config: save_logic = save_logic.ErrorOnDuplicateConfig) -> ObjectId:
+def __save_payload(collection_name: str, config: Dict[str, str], payload: str, connection_config: ConnectionConfig = DEFAULT_CACHE_CONNECTION_CFG, on_duplicate_config: save_logic = save_logic.ErrorOnDuplicateConfig) -> ObjectId:
     try:
         mng_client, mng_collection = create_connection(
             collection_name, connection_config)
@@ -73,7 +71,7 @@ def __save_payload(collection_name: str, config: Dict[str, str], payload: str, c
     return _id.inserted_id
 
 
-def save_df(collection_name: str, config: Dict[str, str], payload: pd.DataFrame, connection_config: ConnectionConfig = DefaultConnectionConfig, on_duplicate_config: save_logic = save_logic.ErrorOnDuplicateConfig, tuple_split: str = "|") -> ObjectId:
+def save_df(collection_name: str, config: Dict[str, str], payload: pd.DataFrame, connection_config: ConnectionConfig = DEFAULT_CACHE_CONNECTION_CFG, on_duplicate_config: save_logic = save_logic.ErrorOnDuplicateConfig, tuple_split: str = "|") -> ObjectId:
     if isinstance(payload, pd.DataFrame):
         payload_data = payload.to_dict()
     else:
@@ -81,7 +79,7 @@ def save_df(collection_name: str, config: Dict[str, str], payload: pd.DataFrame,
     return __save_payload(collection_name, config, payload_data, connection_config, on_duplicate_config)
 
 
-def save_sr(collection_name: str, config: Dict[str, str], payload: pd.Series, connection_config: ConnectionConfig = DefaultConnectionConfig, on_duplicate_config: save_logic = save_logic.ErrorOnDuplicateConfig, tuple_split="|") -> ObjectId:
+def save_sr(collection_name: str, config: Dict[str, str], payload: pd.Series, connection_config: ConnectionConfig = DEFAULT_CACHE_CONNECTION_CFG, on_duplicate_config: save_logic = save_logic.ErrorOnDuplicateConfig, tuple_split="|") -> ObjectId:
     if isinstance(payload, pd.Series):
         payload_data = payload.to_dict()
     else:
@@ -98,7 +96,7 @@ def _search_id(mng_collection: Collection, query: Dict[str, str]) -> List[Object
     return _ret
 
 
-def search_id(collection_name: str, query: Dict[str, str], connection_config: ConnectionConfig = DefaultConnectionConfig) -> List[ObjectId]:
+def search_id(collection_name: str, query: Dict[str, str], connection_config: ConnectionConfig = DEFAULT_CACHE_CONNECTION_CFG) -> List[ObjectId]:
     try:
         mng_client, mng_collection = create_connection(
             collection_name, connection_config)
@@ -107,7 +105,7 @@ def search_id(collection_name: str, query: Dict[str, str], connection_config: Co
         mng_client.close()
 
 
-def delete_dy_config(collection_name: str, query: Dict[str, str], connection_config: ConnectionConfig = DefaultConnectionConfig) -> int:
+def delete_dy_config(collection_name: str, query: Dict[str, str], connection_config: ConnectionConfig = DEFAULT_CACHE_CONNECTION_CFG) -> int:
     """
     delete records by query
     return delete count
@@ -121,7 +119,7 @@ def delete_dy_config(collection_name: str, query: Dict[str, str], connection_con
         mng_client.close()
 
 
-def __load_payload(collection_name: str, query: Dict[str, str] = {}, id: Union[str, ObjectId] = "", connection_config: ConnectionConfig = DefaultConnectionConfig) -> List[Tuple[Dict[str, str], str]]:
+def __load_payload(collection_name: str, query: Dict[str, str] = {}, id: Union[str, ObjectId] = "", connection_config: ConnectionConfig = DEFAULT_CACHE_CONNECTION_CFG) -> List[Tuple[Dict[str, str], str]]:
     _ret = []
     try:
         mng_client, mng_collection = create_connection(
@@ -148,7 +146,7 @@ def __load_payload(collection_name: str, query: Dict[str, str] = {}, id: Union[s
     return _ret
 
 
-def load_df(collection_name: str, query: Dict[str, str] = {}, id: Union[str, ObjectId] = "", connection_config: ConnectionConfig = DefaultConnectionConfig, tuple_split: str = "|") -> List[Tuple[Dict[str, str], pd.DataFrame]]:
+def load_df(collection_name: str, query: Dict[str, str] = {}, id: Union[str, ObjectId] = "", connection_config: ConnectionConfig = DEFAULT_CACHE_CONNECTION_CFG, tuple_split: str = "|") -> List[Tuple[Dict[str, str], pd.DataFrame]]:
     _tmp_ret: List[Tuple[Dict[str, str], str]] = __load_payload(
         collection_name, query, id, connection_config)
     _ret: List[Tuple[Dict[str, str], pd.DataFrame]] = []
@@ -159,7 +157,7 @@ def load_df(collection_name: str, query: Dict[str, str] = {}, id: Union[str, Obj
     return _ret
 
 
-def load_sr(collection_name: str, query: Dict[str, str] = {}, id: Union[str, ObjectId] = "", connection_config: ConnectionConfig = DefaultConnectionConfig, tuple_split: str = "|") -> List[Tuple[Dict[str, str], pd.Series]]:
+def load_sr(collection_name: str, query: Dict[str, str] = {}, id: Union[str, ObjectId] = "", connection_config: ConnectionConfig = DEFAULT_CACHE_CONNECTION_CFG, tuple_split: str = "|") -> List[Tuple[Dict[str, str], pd.Series]]:
     _tmp_ret: List[Tuple[Dict[str, str], str]] = __load_payload(
         collection_name, query, id, connection_config)
     _ret: List[Tuple[Dict[str, str], pd.DataFrame]] = []

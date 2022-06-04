@@ -1,12 +1,3 @@
-from multiprocessing import connection
-
-
-class ConnectionConfig:
-    HOST = "192.168.0.1"
-    PORT = 8080
-    USERNAME = "root"
-    PASSWORD = "root"
-    AUTHSOURCE = "nntrade"
-    DATABASE = "nntrade"
-
-DefaultConnectionConfig = ConnectionConfig()
+from .constants import DEFAULT_CACHE_CONNECTION_CFG
+from .cache_client import CacheClient
+from .tools import *

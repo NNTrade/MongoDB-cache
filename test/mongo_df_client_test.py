@@ -1,34 +1,33 @@
 from sys import float_repr_style
-from src import DefaultConnectionConfig
-from src import mongo_df_client
+from src import cache_client_func, DEFAULT_CACHE_CONNECTION_CFG
 from pymongo import MongoClient
 import pandas as pd
 import unittest
 import uuid
 
-from src.multi_index_flatting import flating
+from src.tools.multi_index_flatting import multiindex_to_index
 
 
 class MongoDfClientTestCase(unittest.TestCase):
     collection_name = "Mongo_DF_Client_TestCase"
 
     def setUp(self):
-        DefaultConnectionConfig.HOST = "192.168.34.112"
-        DefaultConnectionConfig.PORT = 9012
-        DefaultConnectionConfig.USERNAME = "unittestbot"
-        DefaultConnectionConfig.PASSWORD = "unittestbot"
-        DefaultConnectionConfig.AUTHSOURCE = "nntrade"
-        DefaultConnectionConfig.DATABASE = "nntrade_unittest"
+        DEFAULT_CACHE_CONNECTION_CFG.HOST = "192.168.34.112"
+        DEFAULT_CACHE_CONNECTION_CFG.PORT = 9012
+        DEFAULT_CACHE_CONNECTION_CFG.USERNAME = "unittestbot"
+        DEFAULT_CACHE_CONNECTION_CFG.PASSWORD = "unittestbot"
+        DEFAULT_CACHE_CONNECTION_CFG.AUTHSOURCE = "nntrade"
+        DEFAULT_CACHE_CONNECTION_CFG.DATABASE = "nntrade_unittest"
 
     def tearDown(self):
         try:
             mng_client = MongoClient(
-                host=DefaultConnectionConfig.HOST,
-                port=DefaultConnectionConfig.PORT,
-                username=DefaultConnectionConfig.USERNAME,
-                password=DefaultConnectionConfig.PASSWORD,
-                authSource=DefaultConnectionConfig.AUTHSOURCE)
-            mng_db = mng_client[DefaultConnectionConfig.DATABASE]
+                host=DEFAULT_CACHE_CONNECTION_CFG.HOST,
+                port=DEFAULT_CACHE_CONNECTION_CFG.PORT,
+                username=DEFAULT_CACHE_CONNECTION_CFG.USERNAME,
+                password=DEFAULT_CACHE_CONNECTION_CFG.PASSWORD,
+                authSource=DEFAULT_CACHE_CONNECTION_CFG.AUTHSOURCE)
+            mng_db = mng_client[DEFAULT_CACHE_CONNECTION_CFG.DATABASE]
             mng_collection = mng_db[self.collection_name]
             mng_collection.drop()
         finally:
@@ -41,10 +40,10 @@ class MongoDfClientTestCase(unittest.TestCase):
         print("expected_df")
         print(expected_df)
         expected_config = {"f1": id, "f2": "test3"}
-        mongo_df_client.save_df(self.collection_name,
+        cache_client_func.save_df(self.collection_name,
                                 expected_config, expected_df)
 
-        asserted_list = mongo_df_client.load_df(
+        asserted_list = cache_client_func.load_df(
             self.collection_name, {"f1": id})
 
         self.assertEqual(1, len(asserted_list))
@@ -64,17 +63,17 @@ class MongoDfClientTestCase(unittest.TestCase):
         print("expected_df")
         print(expected_df)
 
-        expected_df.index = flating(expected_df.index)
-        expected_df.columns = flating(expected_df.columns)
+        expected_df.index = multiindex_to_index(expected_df.index)
+        expected_df.columns = multiindex_to_index(expected_df.columns)
 
         print("expected_df after flating")
         print(expected_df)
 
         expected_config = {"f1": id, "f2": "test3"}
-        mongo_df_client.save_df(self.collection_name,
+        cache_client_func.save_df(self.collection_name,
                                 expected_config, expected_df)
 
-        asserted_list = mongo_df_client.load_df(
+        asserted_list = cache_client_func.load_df(
             self.collection_name, {"f1": id})
 
         self.assertEqual(1, len(asserted_list))
@@ -94,10 +93,10 @@ class MongoDfClientTestCase(unittest.TestCase):
         expected_config = {"f1": id, "f2": "test4"}
         print("expected_df")
         print(expected_df)
-        mongo_df_client.save_sr(self.collection_name,
+        cache_client_func.save_sr(self.collection_name,
                                 expected_config, expected_df)
 
-        asserted_list = mongo_df_client.load_sr(
+        asserted_list = cache_client_func.load_sr(
             self.collection_name, {"f1": id})
 
         self.assertEqual(1, len(asserted_list))
@@ -120,12 +119,12 @@ class MongoDfClientTestCase(unittest.TestCase):
 
         expected_config1 = {"f1": id, "f2": "test3"}
         expected_config2 = {"f1": id, "f2": "test4"}
-        mongo_df_client.save_df(self.collection_name,
+        cache_client_func.save_df(self.collection_name,
                                 expected_config1, expected_df1)
-        mongo_df_client.save_df(self.collection_name,
+        cache_client_func.save_df(self.collection_name,
                                 expected_config2, expected_df2)
 
-        asserted_list = mongo_df_client.load_df(
+        asserted_list = cache_client_func.load_df(
             self.collection_name, {"f1": id})
 
         self.assertEqual(2, len(asserted_list))
@@ -163,12 +162,12 @@ class MongoDfClientTestCase(unittest.TestCase):
 
         expected_config1 = {"f1": id, "f2": "test3"}
         expected_config2 = {"f1": id, "f2": "test4"}
-        mongo_df_client.save_sr(self.collection_name,
+        cache_client_func.save_sr(self.collection_name,
                                 expected_config1, expected_df1)
-        mongo_df_client.save_sr(self.collection_name,
+        cache_client_func.save_sr(self.collection_name,
                                 expected_config2, expected_df2)
 
-        asserted_list = mongo_df_client.load_sr(
+        asserted_list = cache_client_func.load_sr(
             self.collection_name, {"f1": id})
 
         self.assertEqual(2, len(asserted_list))
@@ -201,10 +200,10 @@ class MongoDfClientTestCase(unittest.TestCase):
             {"A": [1, 2, 3], "B": [4, 5, 6]}, index=[10, 11, 12])
         expected_df.index = expected_df.index.map(lambda el: str(el))
         expected_config = {"f1": id, "f2": "test3"}
-        object_id = mongo_df_client.save_df(
+        object_id = cache_client_func.save_df(
             self.collection_name, expected_config, expected_df)
 
-        asserted_list = mongo_df_client.load_df(
+        asserted_list = cache_client_func.load_df(
             self.collection_name, id=object_id)
 
         self.assertEqual(1, len(asserted_list))
@@ -220,10 +219,10 @@ class MongoDfClientTestCase(unittest.TestCase):
             {"A": [1, 2, 3], "B": [4, 5, 6]}, index=[10, 11, 12])
         expected_df.index = expected_df.index.map(lambda el: str(el))
         expected_config = {"f1": id, "f2": "test3"}
-        object_id = mongo_df_client.save_df(
+        object_id = cache_client_func.save_df(
             self.collection_name, expected_config, expected_df)
         str_id = str(object_id)
-        asserted_list = mongo_df_client.load_df(
+        asserted_list = cache_client_func.load_df(
             self.collection_name, id=str_id)
 
         self.assertEqual(1, len(asserted_list))
@@ -239,10 +238,10 @@ class MongoDfClientTestCase(unittest.TestCase):
             {"A": [1, 2, 3], "B": [4, 5, 6]}, index=[10, 11, 12])
         expected_df.index = expected_df.index.map(lambda el: str(el))
         expected_config = {"f1": id, "f2": "test4"}
-        object_id = mongo_df_client.save_df(
+        object_id = cache_client_func.save_df(
             self.collection_name, expected_config, expected_df)
         str_id = str(object_id)
-        asserted_list = mongo_df_client.load_df(
+        asserted_list = cache_client_func.load_df(
             self.collection_name, query=expected_config)
 
         self.assertEqual(1, len(asserted_list))
@@ -258,10 +257,10 @@ class MongoDfClientTestCase(unittest.TestCase):
         expected_df = pd.DataFrame(
             {"A": [1, 2, 3], "B": [4, 5, 6]}, index=[10, 11, 12])
         expected_df.index = expected_df.index.map(lambda el: str(el))
-        expected_id = mongo_df_client.save_df(
+        expected_id = cache_client_func.save_df(
             self.collection_name, config, expected_df)
 
-        asserted_id = mongo_df_client.search_id(self.collection_name, config)
+        asserted_id = cache_client_func.search_id(self.collection_name, config)
 
         self.assertEqual(1, len(asserted_id))
         self.assertEqual(expected_id, asserted_id[0])

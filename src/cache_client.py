@@ -1,13 +1,13 @@
 from typing import Dict, Union, List, Tuple
 import pandas as pd
 from bson.objectid import ObjectId
-from .mongo_df_client import check_df_convert, replace, save_df, save_logic, search_id, load_df, load_sr, check_sr_convert, save_sr
-from . import ConnectionConfig, DefaultConnectionConfig
+from .cache_client_func import check_df_convert, replace, save_df, save_logic, search_id, load_df, load_sr, check_sr_convert, save_sr
+from .constants import ConnectionConfig, DEFAULT_CACHE_CONNECTION_CFG
 import logging
 
 
-class BaseClient:
-    def __init__(self, collection_name: str, connection_config: ConnectionConfig = DefaultConnectionConfig) -> None:
+class CacheClient:
+    def __init__(self, collection_name: str, connection_config: ConnectionConfig = DEFAULT_CACHE_CONNECTION_CFG) -> None:
         self._logger = logging.getLogger(f"Client for {collection_name}")
         self._collection_name = collection_name
         self.connection_config = connection_config
