@@ -1,5 +1,8 @@
 # Framework for saving cache to MongoDB
+## add to requirements
+NNTrade.cache.mongodb @ git+ssh://git@github.com/NNTrade/MongoDB-cache.git#egg=NNTrade.cache.mongodb
 
+## Imropt
 ```python
 import traiding.cache.mongodb.client_realization as client_realization
 ```
