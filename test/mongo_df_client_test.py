@@ -1,5 +1,6 @@
 from sys import float_repr_style
-from src import cache_client_func, DEFAULT_CACHE_CONNECTION_CFG
+from src import cache_client_func
+from src.cache_client_func import ConnectionConfig
 from pymongo import MongoClient
 import pandas as pd
 import unittest
@@ -12,22 +13,17 @@ class MongoDfClientTestCase(unittest.TestCase):
     collection_name = "Mongo_DF_Client_TestCase"
 
     def setUp(self):
-        DEFAULT_CACHE_CONNECTION_CFG.HOST = "192.168.34.112"
-        DEFAULT_CACHE_CONNECTION_CFG.PORT = 9012
-        DEFAULT_CACHE_CONNECTION_CFG.USERNAME = "unittestbot"
-        DEFAULT_CACHE_CONNECTION_CFG.PASSWORD = "unittestbot"
-        DEFAULT_CACHE_CONNECTION_CFG.AUTHSOURCE = "nntrade"
-        DEFAULT_CACHE_CONNECTION_CFG.DATABASE = "nntrade_unittest"
+        self.connection_config = ConnectionConfig("192.168.100.227",27017,"unittestbot","unittestbot","mongodb-cache-test","mongodb-cache-test")
 
     def tearDown(self):
         try:
             mng_client = MongoClient(
-                host=DEFAULT_CACHE_CONNECTION_CFG.HOST,
-                port=DEFAULT_CACHE_CONNECTION_CFG.PORT,
-                username=DEFAULT_CACHE_CONNECTION_CFG.USERNAME,
-                password=DEFAULT_CACHE_CONNECTION_CFG.PASSWORD,
-                authSource=DEFAULT_CACHE_CONNECTION_CFG.AUTHSOURCE)
-            mng_db = mng_client[DEFAULT_CACHE_CONNECTION_CFG.DATABASE]
+                host=self.connection_config.host,
+                port=self.connection_config.port,
+                username=self.connection_config.username,
+                password=self.connection_config.password,
+                authSource=self.connection_config.authsource)
+            mng_db = mng_client[self.connection_config.database]
             mng_collection = mng_db[self.collection_name]
             mng_collection.drop()
         finally:
@@ -40,11 +36,11 @@ class MongoDfClientTestCase(unittest.TestCase):
         print("expected_df")
         print(expected_df)
         expected_config = {"f1": id, "f2": "test3"}
-        cache_client_func.save_df(self.collection_name,
+        cache_client_func.save_df(self.collection_name,self.connection_config,
                                 expected_config, expected_df)
 
         asserted_list = cache_client_func.load_df(
-            self.collection_name, {"f1": id})
+            self.collection_name,self.connection_config,{"f1": id})
 
         self.assertEqual(1, len(asserted_list))
 
@@ -70,11 +66,11 @@ class MongoDfClientTestCase(unittest.TestCase):
         print(expected_df)
 
         expected_config = {"f1": id, "f2": "test3"}
-        cache_client_func.save_df(self.collection_name,
+        cache_client_func.save_df(self.collection_name,self.connection_config,
                                 expected_config, expected_df)
 
         asserted_list = cache_client_func.load_df(
-            self.collection_name, {"f1": id})
+            self.collection_name,self.connection_config, {"f1": id})
 
         self.assertEqual(1, len(asserted_list))
 
@@ -93,11 +89,11 @@ class MongoDfClientTestCase(unittest.TestCase):
         expected_config = {"f1": id, "f2": "test4"}
         print("expected_df")
         print(expected_df)
-        cache_client_func.save_sr(self.collection_name,
+        cache_client_func.save_sr(self.collection_name,self.connection_config,
                                 expected_config, expected_df)
 
         asserted_list = cache_client_func.load_sr(
-            self.collection_name, {"f1": id})
+            self.collection_name,self.connection_config, {"f1": id})
 
         self.assertEqual(1, len(asserted_list))
 
@@ -119,13 +115,13 @@ class MongoDfClientTestCase(unittest.TestCase):
 
         expected_config1 = {"f1": id, "f2": "test3"}
         expected_config2 = {"f1": id, "f2": "test4"}
-        cache_client_func.save_df(self.collection_name,
+        cache_client_func.save_df(self.collection_name,self.connection_config,
                                 expected_config1, expected_df1)
-        cache_client_func.save_df(self.collection_name,
+        cache_client_func.save_df(self.collection_name,self.connection_config,
                                 expected_config2, expected_df2)
 
         asserted_list = cache_client_func.load_df(
-            self.collection_name, {"f1": id})
+            self.collection_name, self.connection_config,{"f1": id})
 
         self.assertEqual(2, len(asserted_list))
 
@@ -162,13 +158,13 @@ class MongoDfClientTestCase(unittest.TestCase):
 
         expected_config1 = {"f1": id, "f2": "test3"}
         expected_config2 = {"f1": id, "f2": "test4"}
-        cache_client_func.save_sr(self.collection_name,
+        cache_client_func.save_sr(self.collection_name,self.connection_config,
                                 expected_config1, expected_df1)
-        cache_client_func.save_sr(self.collection_name,
+        cache_client_func.save_sr(self.collection_name,self.connection_config,
                                 expected_config2, expected_df2)
 
         asserted_list = cache_client_func.load_sr(
-            self.collection_name, {"f1": id})
+            self.collection_name,self.connection_config, {"f1": id})
 
         self.assertEqual(2, len(asserted_list))
 
@@ -201,10 +197,10 @@ class MongoDfClientTestCase(unittest.TestCase):
         expected_df.index = expected_df.index.map(lambda el: str(el))
         expected_config = {"f1": id, "f2": "test3"}
         object_id = cache_client_func.save_df(
-            self.collection_name, expected_config, expected_df)
+            self.collection_name,self.connection_config, expected_config, expected_df)
 
         asserted_list = cache_client_func.load_df(
-            self.collection_name, id=object_id)
+            self.collection_name,self.connection_config, id=object_id)
 
         self.assertEqual(1, len(asserted_list))
 
@@ -220,10 +216,10 @@ class MongoDfClientTestCase(unittest.TestCase):
         expected_df.index = expected_df.index.map(lambda el: str(el))
         expected_config = {"f1": id, "f2": "test3"}
         object_id = cache_client_func.save_df(
-            self.collection_name, expected_config, expected_df)
+            self.collection_name,self.connection_config, expected_config, expected_df)
         str_id = str(object_id)
         asserted_list = cache_client_func.load_df(
-            self.collection_name, id=str_id)
+            self.collection_name,self.connection_config, id=str_id)
 
         self.assertEqual(1, len(asserted_list))
 
@@ -239,10 +235,10 @@ class MongoDfClientTestCase(unittest.TestCase):
         expected_df.index = expected_df.index.map(lambda el: str(el))
         expected_config = {"f1": id, "f2": "test4"}
         object_id = cache_client_func.save_df(
-            self.collection_name, expected_config, expected_df)
+            self.collection_name,self.connection_config, expected_config, expected_df)
         str_id = str(object_id)
         asserted_list = cache_client_func.load_df(
-            self.collection_name, query=expected_config)
+            self.collection_name,self.connection_config, query=expected_config)
 
         self.assertEqual(1, len(asserted_list))
 
@@ -258,9 +254,9 @@ class MongoDfClientTestCase(unittest.TestCase):
             {"A": [1, 2, 3], "B": [4, 5, 6]}, index=[10, 11, 12])
         expected_df.index = expected_df.index.map(lambda el: str(el))
         expected_id = cache_client_func.save_df(
-            self.collection_name, config, expected_df)
+            self.collection_name,self.connection_config, config, expected_df)
 
-        asserted_id = cache_client_func.search_id(self.collection_name, config)
+        asserted_id = cache_client_func.search_id(self.collection_name,self.connection_config, config)
 
         self.assertEqual(1, len(asserted_id))
         self.assertEqual(expected_id, asserted_id[0])

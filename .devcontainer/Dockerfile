@@ -17,4 +17,4 @@ RUN pip3 --no-cache-dir install -U -r /tmp/pip-tmp/requirements_dev.txt \
 # [Optional] Uncomment this line to install global node packages.
 # RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g <your-package-here>" 2>&1
 
-RUN jupyter nbextension enable --py widgetsnbextension
+#RUN jupyter nbextension enable --py widgetsnbextension

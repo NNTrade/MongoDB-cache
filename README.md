@@ -1,6 +1,6 @@
 # Framework for saving cache to MongoDB
 ## add to requirements
-NNTrade.cache.mongodb @ git+ssh://git@github.com/NNTrade/MongoDB-cache.git#egg=NNTrade.cache.mongodb
+NNTrade.cache.mongodb @ git+https://git@github.com/NNTrade/MongoDB-cache.git#egg=NNTrade.cache.mongodb
 
 ## Imropt
 ```python
@@ -19,12 +19,12 @@ mongosh --port 27017  --authenticationDatabase "admin" -u "root" -p
 ```
 3. Создать пользователя для тестов
 ```bash
-use nntrade
+use mongodb-cache-test
 db.createUser(
   {
     user: "unittestbot",
     pwd:  "unittestbot",
-    roles: [ { role: "readWrite", db: "nntrade_unittest" }]
+    roles: [ { role: "readWrite", db: "mongodb-cache-test" }]
   }
 )
 ```
