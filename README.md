@@ -1,6 +1,6 @@
 # Framework for saving cache to MongoDB
 ## add to requirements
-NNTrade.cache.mongodb @ git+ssh://git@github.com/NNTrade/MongoDB-cache.git#egg=NNTrade.cache.mongodb
+NNTrade.cache.mongodb @ git+https://git@github.com/NNTrade/MongoDB-cache.git#egg=NNTrade.cache.mongodb
 
 ## Imropt
 ```python
